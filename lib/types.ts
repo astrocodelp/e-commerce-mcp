@@ -21,7 +21,8 @@ export type ProviderSnapshot = { updatedAt: string; deals: Deal[]; campaigns: Ca
 export const CATEGORY_LABELS: Record<string, string> = {
   smartphones: "Smartphones", audio: "Headphones & audio", tv: "TVs", laptops: "Laptops", smartwatches: "Smartwatches",
   "robot-vacuums": "Robot vacuums", tablets: "Tablets", appliances: "Home appliances", gaming: "Gaming", monitors: "Monitors",
-  cameras: "Cameras", kitchen: "Kitchen", beauty: "Beauty", toys: "Toys", storage: "Storage", other: "Other",
+  cameras: "Cameras", kitchen: "Kitchen", beauty: "Beauty", toys: "Toys", storage: "Storage", sportswear: "Sportswear", "power-tools": "Power tools",
+  "office-furniture": "Office furniture", baby: "Baby gear", other: "Other",
 };
 export const categoryLabel = (c: string) => CATEGORY_LABELS[c] ?? c.replace(/-/g, " ").replace(/^./, m => m.toUpperCase());
 export const eur = (n: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);

@@ -19,6 +19,7 @@ test("eBay requests fixed-price listings deliverable to Greece and returns uniqu
   t.after(() => { delete process.env.EBAY_CLIENT_ID; delete process.env.EBAY_CLIENT_SECRET; });
   assert.equal(ebay.enabled?.(), true);
   let tokenCalls = 0;
+  const categories = new Set<string | null>();
   t.mock.method(globalThis, "fetch", async (input: string | URL, init: RequestInit) => {
     const url = new URL(input);
     const headers = new Headers(init.headers);
@@ -29,6 +30,8 @@ test("eBay requests fixed-price listings deliverable to Greece and returns uniqu
       return Response.json({ access_token: "token" });
     }
     assert.equal(headers.get("authorization"), "Bearer token");
+    assert.equal(url.searchParams.get("limit"), "100");
+    categories.add(url.searchParams.get("category_ids"));
     assert.equal(headers.get("x-ebay-c-marketplace-id"), "EBAY_DE");
     assert.match(url.searchParams.get("filter")!, /buyingOptions:\{FIXED_PRICE\}.*deliveryCountry:GR/);
     return Response.json({ itemSummaries: [
@@ -40,6 +43,7 @@ test("eBay requests fixed-price listings deliverable to Greece and returns uniqu
   });
   const { deals } = await ebay.fetchDeals({ signal: new AbortController().signal });
   assert.equal(tokenCalls, 1);
+  assert.ok(categories.has("220") && categories.has("80053"));
   assert.equal(deals.length, 1);
   assert.deepEqual(
     [deals[0].id, deals[0].price, deals[0].oldPrice, deals[0].discountPct, deals[0].shop, deals[0].imageUrl],

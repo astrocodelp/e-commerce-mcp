@@ -33,6 +33,13 @@ test("skroutz: keeps matching product URLs and replaces bare links with a produc
   assert.equal(deals[2].url, url);
   assert.equal(skroutzUrl(3, "Sony Test", "https://www.skroutz.gr/s/3"), "https://www.skroutz.gr/search?keyphrase=Sony+Test");
 });
+test("skroutz: maps new Greek category names to storefront filters", () => {
+  const { deals } = parseDeals([{ deals: [
+    drop(1, "Example", 20, 50, [9001, "Επιτραπέζια Παιχνίδια"], "Brand"),
+    drop(2, "Example", 20, 50, [9002, "Καρέκλες Γραφείου"], "Brand"),
+  ] }], NOW);
+  assert.deepEqual(deals.map(deal => deal.category), ["toys", "office-furniture"]);
+});
 test("skroutz: parses campaigns", () => {
   const { campaigns } = parseDeals([{ deals: [{ kind: "mission", status: "active", audience: "all", funded_by: "skroutz", starts_at: "2026-11-16T00:00:00Z", benefit: { amount: 30, min_order: 60 } }] }] as never, NOW);
   assert.equal(campaigns[0].title, "€30 off orders of €60+");

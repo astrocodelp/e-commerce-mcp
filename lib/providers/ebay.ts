@@ -10,6 +10,8 @@ const CATEGORIES = [
   ["171485", "tablets"],
   ["139971", "gaming"],
   ["31388", "cameras"],
+  ["80053", "monitors"],
+  ["220", "toys"],
 ] as const;
 
 type Money = { value?: string; currency?: string };
@@ -56,7 +58,7 @@ function toDeal(item: Item, category: string, fetchedAt: string): Deal | undefin
 
 export const ebay: Provider = {
   id: "ebay", name: "eBay", kind: "marketplace", homepage: "https://www.ebay.de",
-  cart: false, minDeals: 1, timeoutMs: 15_000,
+  cart: false, minDeals: 1, timeoutMs: 22_000,
   enabled: () => Boolean(process.env.EBAY_CLIENT_ID?.trim() && process.env.EBAY_CLIENT_SECRET?.trim()),
   async fetchDeals({ signal }) {
     const id = process.env.EBAY_CLIENT_ID?.trim();
@@ -77,7 +79,7 @@ export const ebay: Provider = {
     for (const [categoryId, category] of CATEGORIES) {
       signal.throwIfAborted();
       const params = new URLSearchParams({
-        category_ids: categoryId, limit: "40",
+        category_ids: categoryId, limit: "100",
         filter: "buyingOptions:{FIXED_PRICE},conditions:{NEW},deliveryCountry:GR",
       });
       const { itemSummaries = [] } = await ebayJson<{ itemSummaries?: Item[] }>(`/buy/browse/v1/item_summary/search?${params}`, {

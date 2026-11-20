@@ -47,7 +47,12 @@ export const bestprice: Provider = {
       try { return await fn(); }
       catch (e) { if (e instanceof McpRateLimitError) { limited = e; stop.abort(); } return undefined; } // any other error: skip this one item
     };
-    await client.init();
+    try {
+      await client.init();
+    } catch (error) {
+      if (error instanceof McpRateLimitError) throw new RateLimitedError(error.retryAfterSec, "BestPrice rate limit");
+      throw error;
+    }
 
     const found = new Map<string, NonNullable<SearchResult["products"]>[number]>();
     await mapPool(QUERIES, 3, q => guard(async () => {

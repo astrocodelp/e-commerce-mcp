@@ -1,13 +1,26 @@
 import { isSkroutzUrl } from "../../ui/links";
 import { oldPriceOf, slug, type Campaign, type Deal } from "../../types";
 
-// Search terms sent to Skroutz's `search_deals` tool on every refresh (Greek terms hit Greek-named categories).
-export const QUERIES = [
-  "smartphone", "iphone", "galaxy", "headphones", "earbuds", "smart tv", "oled tv", "laptop", "gaming laptop", "macbook", "smartwatch", "tablet", "ipad",
-  "gaming monitor", "πλυντήριο ρούχων", "ψυγείο", "κλιματιστικό", "ρομποτική σκούπα", "air fryer", "SSD", "dyson", "playstation", "nintendo switch", "κάμερα", "καφετιέρα",
-];
 // Skroutz category_id -> our category slug. Unknown categories fall back to a slug of their name, or "other".
 const CATEGORY: Record<number, string> = { 40: "smartphones", 1863: "audio", 435: "audio", 3476: "audio", 12: "tv", 25: "laptops", 1705: "smartwatches", 1105: "tablets", 43: "monitors", 405: "appliances", 2401: "robot-vacuums", 88: "storage", 444: "kitchen", 2624: "beauty" };
+
+const CATEGORY_NAMES: [RegExp, string][] = [
+  [/κονσολ|παιχνιδομηχαν|gaming console|game console/, "gaming"],
+  [/φωτογραφικ|camera/, "cameras"],
+  [/καφετιερ|air fryer|φριτεζ|coffee machine/, "kitchen"],
+  [/σεσουαρ|πιστολακ|αρωμα|fragrance|hair dryer/, "beauty"],
+  [/τουβλακια|επιτραπεζι|παιχνιδ|lego|board game|toys/, "toys"],
+  [/αθλητικ.*παπουτσ|sneakers|running shoes/, "sportswear"],
+  [/εργαλεια|δραπανο|drill|power tools/, "power-tools"],
+  [/καρεκλ.*γραφει|office chair/, "office-furniture"],
+  [/καροτσ|stroller/, "baby"],
+];
+
+function categoryOf(category?: { category_id: number; name: string }): string {
+  if (!category) return "other";
+  const name = category.name.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  return CATEGORY[category.category_id] ?? CATEGORY_NAMES.find(([pattern]) => pattern.test(name))?.[1] ?? (slug(name) || "other");
+}
 
 type SkDeal = {
   kind: string; status?: string; audience?: string; funded_by?: string; starts_at?: string; ends_at?: string | null;
@@ -35,8 +48,8 @@ export function parseDeals(results: SkResult[], now = Date.now(), at = new Date(
     const p = d.products?.[0];
     if (d.kind === "price_drop" && p && d.products?.length === 1 && d.benefit?.percentage && d.benefit.price && d.benefit.price > 0) {
       const pct = Math.round(d.benefit.percentage); if (pct < 1 || pct > 90) continue;
-      const brand = d.brands?.[0]?.name ?? p.name.split(" ")[0]; const c = d.categories?.[0];
-      const category = (c && CATEGORY[c.category_id]) || (c && slug(c.name)) || "other";
+      const brand = d.brands?.[0]?.name ?? p.name.split(" ")[0];
+      const category = categoryOf(d.categories?.[0]);
       const title = p.name.toLowerCase().startsWith(brand.toLowerCase()) ? p.name : `${brand} ${p.name}`;
       const cur = deals.get(p.sku_id);
       if (!cur || pct > cur.discountPct) deals.set(p.sku_id, {
