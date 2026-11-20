@@ -44,5 +44,10 @@
   "homepage": "https://blackfriday-mcp.vercel.app",
   "bugs": {
     "url": "https://github.com/astrocodelp/e-commerce-mcp/issues"
+  },
+  "overrides": {
+    "@vercel/cli-config": {
+      "zod": "$zod"
+    }
   }
 }
