@@ -1,0 +1,48 @@
+{
+  "name": "blackfriday-mcp",
+  "version": "0.4.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "docs:connect": "tsx scripts/gen-connect-docs.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vercel/blob": "^2.9.0",
+    "mcp-handler": "^2.4.0",
+    "next": "^16.4.6",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^5.9.3",
+    "zod": "^4.6.7"
+  },
+  "description": "Agent-first Black Friday deal feed for Skroutz: remote MCP server, llms.txt and a fast web UI.",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "skroutz",
+    "black-friday",
+    "llms-txt",
+    "nextjs"
+  ],
+  "devDependencies": {
+    "tsx": "^4.23.15"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/astrocodelp/e-commerce-mcp.git"
+  },
+  "homepage": "https://blackfriday-mcp.vercel.app",
+  "bugs": {
+    "url": "https://github.com/astrocodelp/e-commerce-mcp/issues"
+  }
+}
