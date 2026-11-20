@@ -5,7 +5,7 @@ import { skroutzUrl } from "./parse";
 const AT = "2026-11-19T15:00:00.000Z";
 const d = (category: string, brand: string, title: string, sku_id: number, discountPct: number, price: number): Deal => ({
   id: `skroutz:${sku_id}`, source: "skroutz", nativeId: String(sku_id), sku_id, title: `${brand} ${title}`, brand, category, shop: null, price, discountPct, oldPrice: oldPriceOf(price, discountPct),
-  baseline: "previous_price", url: skroutzUrl(sku_id), imageUrl: null, verify: `Skroutz Shopping connector: get_product(sku_id=${sku_id}) then add_to_cart`, fetchedAt: AT,
+  baseline: "previous_price", url: skroutzUrl(sku_id, `${brand} ${title}`), imageUrl: null, verify: `Skroutz Shopping connector: get_product(sku_id=${sku_id}) then add_to_cart`, fetchedAt: AT,
 });
 export const SKROUTZ_CAMPAIGNS: Campaign[] = [
   { id: "mission-30-off-60", source: "skroutz", title: "€30 off orders of €60+", description: "Skroutz-funded reward on a qualifying purchase (min order €60).", startsAt: "2026-11-16T18:30:00+02:00", endsAt: "2026-11-20T23:59:59+02:00" },

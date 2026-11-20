@@ -1,3 +1,4 @@
+import { isSkroutzUrl } from "../../ui/links";
 import { oldPriceOf, slug, type Campaign, type Deal } from "../../types";
 
 // Search terms sent to Skroutz's `search_deals` tool on every refresh (Greek terms hit Greek-named categories).
@@ -11,11 +12,19 @@ const CATEGORY: Record<number, string> = { 40: "smartphones", 1863: "audio", 435
 type SkDeal = {
   kind: string; status?: string; audience?: string; funded_by?: string; starts_at?: string; ends_at?: string | null;
   benefit?: { type?: string; percentage?: number; price?: number; amount?: number; min_order?: number; installments?: number; tiers?: { min_order: number; installments: number }[] };
-  products?: { sku_id: number; name: string }[]; products_count?: number; categories?: { category_id: number; name: string }[]; brands?: { name: string }[];
+  products?: { sku_id: number; name: string; url?: string; product_url?: string }[]; products_count?: number; categories?: { category_id: number; name: string }[]; brands?: { name: string }[];
 };
 export type SkResult = { success?: boolean; deals?: SkDeal[] };
 const eur = (n: number) => `€${n}`;
-export const skroutzUrl = (sku: number) => `https://www.skroutz.gr/s/${sku}`;
+export function skroutzUrl(sku: number | string, title: string, productUrl?: string): string {
+  if (productUrl && isSkroutzUrl(productUrl)) {
+    const productId = new URL(productUrl).pathname.match(/^\/s\/(\d+)\/[^/]+\.html$/)?.[1];
+    if (productId === String(sku)) return productUrl;
+  }
+  const url = new URL("https://www.skroutz.gr/search");
+  url.searchParams.set("keyphrase", title);
+  return url.href;
+}
 
 export function parseDeals(results: SkResult[], now = Date.now(), at = new Date(now).toISOString()): { deals: Deal[]; campaigns: Campaign[] } {
   const deals = new Map<number, Deal>(); const campaigns = new Map<string, Campaign>();
@@ -33,7 +42,7 @@ export function parseDeals(results: SkResult[], now = Date.now(), at = new Date(
       if (!cur || pct > cur.discountPct) deals.set(p.sku_id, {
         id: `skroutz:${p.sku_id}`, source: "skroutz", nativeId: String(p.sku_id), sku_id: p.sku_id, title, brand, category, shop: null,
         price: d.benefit.price, discountPct: pct, oldPrice: oldPriceOf(d.benefit.price, pct), baseline: "previous_price",
-        url: skroutzUrl(p.sku_id), imageUrl: null, verify: `Skroutz Shopping connector: get_product(sku_id=${p.sku_id}) then add_to_cart`, fetchedAt: at, endsAt: d.ends_at ?? null,
+        url: skroutzUrl(p.sku_id, title, p.product_url ?? p.url), imageUrl: null, verify: `Skroutz Shopping connector: get_product(sku_id=${p.sku_id}) then add_to_cart`, fetchedAt: at, endsAt: d.ends_at ?? null,
       });
     } else if (d.funded_by === "skroutz" && !d.products?.length && d.starts_at) {
       const b = d.benefit; const id = `${d.kind}-${d.starts_at}`;

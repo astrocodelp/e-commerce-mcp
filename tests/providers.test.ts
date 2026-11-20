@@ -1,7 +1,7 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
-import { parseDeals } from "../lib/providers/skroutz/parse";
+import { parseDeals, skroutzUrl } from "../lib/providers/skroutz/parse";
 
 // --- Skroutz: parsing real search_deals response shapes ---
 const NOW = Date.parse("2026-11-19T20:00:00Z");
@@ -15,6 +15,23 @@ test("skroutz: keeps valid price drops, drops expired / b2b / multi-buy, dedupes
   const { deals } = parseDeals([r] as never, NOW);
   assert.equal(deals.length, 1);
   assert.equal(deals[0].id, "skroutz:1"); assert.equal(deals[0].category, "audio"); assert.equal(deals[0].title, "Sony WH-1000XM6"); assert.equal(deals[0].oldPrice, 434.2);
+});
+test("skroutz: keeps matching product URLs and replaces bare links with a product search", () => {
+  const url = "https://www.skroutz.gr/s/3/sony-test.html";
+  const rows = [
+    drop(1, "WH-1000XM6 & case", 20, 200, [1863, "Headphones"], "Sony"),
+    drop(2, "WH-1000XM5", 20, 200, [1863, "Headphones"], "Sony", {
+      products: [{ sku_id: 2, name: "WH-1000XM5", url }],
+    }),
+    drop(3, "Test", 20, 200, [1863, "Headphones"], "Sony", {
+      products: [{ sku_id: 3, name: "Test", url }],
+    }),
+  ];
+  const { deals } = parseDeals([{ deals: rows }], NOW);
+  assert.equal(new URL(deals[0].url).searchParams.get("keyphrase"), "Sony WH-1000XM6 & case");
+  assert.equal(new URL(deals[1].url).pathname, "/search");
+  assert.equal(deals[2].url, url);
+  assert.equal(skroutzUrl(3, "Sony Test", "https://www.skroutz.gr/s/3"), "https://www.skroutz.gr/search?keyphrase=Sony+Test");
 });
 test("skroutz: parses campaigns", () => {
   const { campaigns } = parseDeals([{ deals: [{ kind: "mission", status: "active", audience: "all", funded_by: "skroutz", starts_at: "2026-11-16T00:00:00Z", benefit: { amount: 30, min_order: 60 } }] }] as never, NOW);

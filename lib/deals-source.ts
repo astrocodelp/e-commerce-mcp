@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { enabledProviders, getProvider } from "./providers";
+import { skroutzUrl } from "./providers/skroutz/parse";
 import { RateLimitedError } from "./providers/types";
 import { readProviderBlob, writeProviderBlob } from "./store";
 import type { ProviderSnapshot, Snapshot, SourceInfo } from "./types";
@@ -53,5 +54,7 @@ export async function getSnapshot(): Promise<Snapshot> {
   const parts = await Promise.all(providers.map(p => providerSnapshot(p.id)));
   const sources: SourceInfo[] = providers.map((p, i) => ({ id: p.id, name: p.name, kind: p.kind, homepage: p.homepage, cart: p.cart, status: parts[i].status, count: parts[i].deals.length, updatedAt: parts[i].deals.length ? parts[i].updatedAt : null }));
   const stamps = parts.filter(x => x.deals.length).map(x => Date.parse(x.updatedAt));
-  return { updatedAt: new Date(stamps.length ? Math.max(...stamps) : 0).toISOString(), deals: parts.flatMap(x => x.deals), campaigns: parts.flatMap(x => x.campaigns), sources };
+  return { updatedAt: new Date(stamps.length ? Math.max(...stamps) : 0).toISOString(), deals: parts.flatMap(x => x.deals).map(deal => deal.source === "skroutz"
+    ? { ...deal, url: skroutzUrl(deal.nativeId, deal.title, deal.url) }
+    : deal), campaigns: parts.flatMap(x => x.campaigns), sources };
 }

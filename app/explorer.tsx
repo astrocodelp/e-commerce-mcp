@@ -29,7 +29,7 @@ function DealCard({ d, i, fresh, source }: { d: Deal; i: number; fresh: boolean;
       <p className="save num">Save {eur(+(d.oldPrice - d.price).toFixed(2))} <span className="faint">vs {base}</span></p>
       <p className="via"><span className={`src src-${d.source}`}>{source}</span>{d.shop ? <span>from {d.shop}</span> : null}</p>
       <div className="acts">
-        <a className="btn sm pri" href={d.url} target="_blank" rel="noopener noreferrer">{source} ↗</a>
+        <a className="btn sm pri" href={d.url} target="_blank" rel="noopener noreferrer">{d.source === "skroutz" && new URL(d.url).pathname === "/search" ? "Find on Skroutz" : source} ↗</a>
         <CopyButton text={prompt} label="Ask agent" doneLabel="Copied" className="btn sm ghost" />
       </div>
     </article>
