@@ -10,6 +10,7 @@ lib/providers/
   index.ts        PROVIDERS registry  ← add your provider here
   skroutz/        OAuth MCP source (official Skroutz Shopping connector)
   bestprice.ts    open MCP source (BestPrice's public server)
+  ebay.ts         read-only eBay Browse API (application OAuth)
 lib/mcp-client.ts generic remote-MCP client (bearer token optional, rate-limit aware)
 lib/http.ts       mapPool (limited concurrency) + shared user agent
 ```
@@ -77,6 +78,7 @@ Call `provider.fetchDeals({ signal: new AbortController().signal })` from a scri
 | --- | --- | --- |
 | **Skroutz** | Yes: official *Skroutz Shopping* connector (OAuth per account) | Integrated. Can fill carts. |
 | **BestPrice** (bestprice.gr) | Yes: official public MCP at `mcp.bestprice.gr/mcp`, read-only, no key. Free tier caps *unidentified* clients per day; contact feedback@bestprice.gr for data access | Integrated, with a small call budget and 6h refresh. Its offers list Greek shops such as **Kotsovolos** and **Public**, which surface as the deal's `shop`. |
+| **eBay** | Integrated through the official [Browse API](https://developer.ebay.com/develop/api/buy/browse_api) | Read-only international source. Requires approved production Browse credentials. |
 | **Amazon** | No official MCP found. Third-party only: e.g. Canopy API's MCP (API key, has a deals tool), Apify actors, browser-automation scrapers | Not integrated. The legitimate routes are a paid data API behind a key (a REST/MCP provider like the template above) or Amazon's own affiliate API with an Associates account. Avoid scraping (terms of service). Check which Amazon storefront actually ships to Greece. |
 | **Kotsovolos**, **Plaisio** | No MCP found | Reachable today through BestPrice offers. A direct source would need an affiliate/product feed or partnership. |
 | **Public.gr** | No buyer-side MCP found; seller-side API only (third-party wrappers exist for orders/stock) | Reachable through BestPrice offers. |

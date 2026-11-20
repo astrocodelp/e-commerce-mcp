@@ -1,3 +1,5 @@
+import { CATEGORY_LABELS } from "../types";
+
 // The MCP App (UI) rendered inline by hosts that support MCP Apps (SEP-1865), e.g. Claude, VS Code, Goose.
 // One self-contained HTML document, no external scripts. It talks to the host over postMessage JSON-RPC:
 //   ui/initialize, ui/notifications/tool-result (data in), ui/message + ui/open-link (actions out).
@@ -7,8 +9,8 @@ export const WIDGET_URI = "ui://blackfriday/deals.html";
 export const WIDGET_URI_OPENAI = "ui://blackfriday/deals-skybridge.html";
 export const WIDGET_MIME = "text/html;profile=mcp-app";
 export const WIDGET_MIME_OPENAI = "text/html+skybridge";
-/** Image CDNs the widget may load from (Skroutz and BestPrice product images). */
-export const WIDGET_CSP = { resourceDomains: ["https://*.pstatic.gr", "https://*.scdn.gr"], connectDomains: [] as string[] };
+/** Image CDNs the widget may load from (Skroutz, BestPrice and eBay product images). */
+export const WIDGET_CSP = { resourceDomains: ["https://*.pstatic.gr", "https://*.scdn.gr", "https://*.ebayimg.com"], connectDomains: [] as string[] };
 
 export const WIDGET_HTML = String.raw`<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -22,10 +24,8 @@ body{font:14px/1.45 ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-ser
 button{font:inherit;color:inherit;cursor:pointer}
 .bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 .bar h2{margin:0;font-size:15px;letter-spacing:-.01em;flex:1;min-width:140px}.bar small{color:var(--muted);font-weight:400}
-.chip{border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:999px;min-height:30px;padding:0 11px;font-size:12.5px;font-weight:600;transition:transform .16s var(--ease),background-color .16s var(--ease),color .16s var(--ease)}
-.chip:active,.btn:active{transform:scale(.97)}
-.chip[aria-pressed=true]{background:var(--text);color:var(--surface);border-color:transparent}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.controls label{flex:1 1 120px;min-width:0;color:var(--muted);font-size:12px}.controls select{display:block;width:100%;min-height:36px;margin-top:3px;padding:0 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);font:inherit;color-scheme:dark}html[data-theme=light] select{color-scheme:light}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%, 205px),1fr));gap:10px}
 .card{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);animation:rise .38s var(--ease) both;animation-delay:calc(var(--i)*26ms)}
 @keyframes rise{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
 .img{height:104px;border-radius:10px;background:#fff;display:grid;place-items:center;overflow:hidden;position:relative}
@@ -35,17 +35,18 @@ button{font:inherit;color:inherit;cursor:pointer}
 .title{font-weight:600;font-size:13px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
 .meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:11.5px;color:var(--faint)}
 .src{padding:1px 7px;border-radius:999px;font-weight:700;background:var(--surface2);color:var(--muted)}
+.src.ebay{background:rgba(115,195,134,.16);color:var(--good)}
 .src.skroutz{background:rgba(255,120,60,.16);color:#ff8c57}.src.bestprice{background:rgba(70,140,255,.16);color:#5b9bff}
 .price{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap}.price b{font-size:20px;letter-spacing:-.03em}.price s{color:var(--faint);font-size:12px}
 .sub{font-size:11.5px;color:var(--muted)}.sub .g{color:var(--good);font-weight:600}
-.acts{display:flex;gap:6px;margin-top:auto}
+.acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface2);font-weight:600;font-size:13px;text-decoration:none;color:var(--text);flex:1;transition:transform .16s var(--ease),background-color .16s var(--ease),border-color .16s var(--ease)}
 .btn.pri{background:var(--accent);color:var(--ink);border-color:transparent}
 .btn.on{background:rgba(74,222,128,.14);border-color:rgba(74,222,128,.5);color:var(--good)}
 .btn.ghost{background:transparent;flex:0 0 auto}
 .btn.lg{min-height:44px;font-size:14.5px;border-radius:11px}
-@media (hover:hover) and (pointer:fine){.btn:hover{border-color:var(--muted)}.chip:hover{color:var(--text)}.btn.pri:hover{filter:brightness(1.06)}}
-.fab{position:sticky;bottom:0;margin-top:12px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px -12px rgba(0,0,0,.5);animation:rise .3s var(--ease) both}
+@media (hover:hover) and (pointer:fine){.btn:hover{border-color:var(--muted)}.btn.pri:hover{filter:brightness(1.06)}}
+.fab{flex-wrap:wrap;position:sticky;bottom:0;margin-top:12px;display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px -12px rgba(0,0,0,.5);animation:rise .3s var(--ease) both}
 .fab span{flex:1;font-weight:600}.fab .btn{flex:0 0 auto}
 .group{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:12px;margin-bottom:10px}
 .gh{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-weight:700}.gh small{color:var(--muted);font-weight:500;flex:1}
@@ -65,8 +66,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 (function () {
   "use strict";
   var app = document.getElementById("app");
-  var state = { view: "deals", deals: [], items: [], cart: null, cartUrl: null, updatedAt: null, sort: "discount", basket: {}, toast: "" };
-  var skroutzHosts = ["skroutz.gr"], linkHosts = ["skroutz.gr", "bestprice.gr"], imgHosts = ["scdn.gr", "pstatic.gr"];
+  var state = { view: "deals", deals: [], items: [], cart: null, cartUrl: null, total: 0, source: "", category: "", sort: "", basket: Object.create(null), toast: "" };
+  var skroutzHosts = ["skroutz.gr"], linkHosts = ["skroutz.gr", "bestprice.gr", "ebay.de", "ebay.com"], imgHosts = ["scdn.gr", "pstatic.gr", "ebayimg.com"];
 
   // ---------- helpers ----------
   function hostOk(url, hosts) {
@@ -94,7 +95,9 @@ button{font:inherit;color:inherit;cursor:pointer}
     return box;
   }
   function baseline(d) { return d.baseline === "median_180d" ? "180-day median" : "previous price"; }
-  function srcName(d) { return d.source === "bestprice" ? "BestPrice" : d.source === "skroutz" ? "Skroutz" : d.source; }
+  var sourceNames = { skroutz: "Skroutz", bestprice: "BestPrice", ebay: "eBay" };
+  var categoryNames = ${JSON.stringify(CATEGORY_LABELS)};
+  function srcName(d) { return sourceNames[d.source] || d.source; }
   function toast(msg) { state.toast = msg; render(); setTimeout(function () { if (state.toast === msg) { state.toast = ""; render(); } }, 2200); }
 
   // ---------- host bridge (MCP Apps JSON-RPC, with ChatGPT window.openai fallback) ----------
@@ -122,6 +125,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var t = ctx.theme || (ctx.styles && ctx.styles.theme); if (t) document.documentElement.setAttribute("data-theme", t === "light" ? "light" : "dark");
   }
   window.addEventListener("message", function (e) {
+    if (e.source !== window.parent) return;
     var m = e.data; if (!m || m.jsonrpc !== "2.0") return;
     if (m.id != null && !m.method) { var p = pending[m.id]; if (p) { delete pending[m.id]; if (m.error) p.rej(new Error(m.error.message)); else p.res(m.result); } return; }
     if (m.method === "ui/notifications/tool-result") onResult(m.params);
@@ -133,13 +137,13 @@ button{font:inherit;color:inherit;cursor:pointer}
   // ---------- data in ----------
   function onResult(r) {
     var s = r && (r.structuredContent || r); if (!s || typeof s !== "object") return;
-    if (s.updatedAt) state.updatedAt = s.updatedAt;
     if (s.view === "deals" && Array.isArray(s.deals)) {
-      state.deals = s.deals; state.view = "deals";
+      state.deals = s.deals; state.total = s.total == null ? s.deals.length : s.total; state.view = "deals";
+      state.source = ""; state.category = ""; state.sort = "";
     } else if (s.view === "basket" || s.view === "cart") {
       state.items = Array.isArray(s.items) ? s.items : []; state.cart = s.skroutzCart || null; state.view = s.view;
       state.cartUrl = s.cartUrl && hostOk(s.cartUrl, skroutzHosts) ? s.cartUrl : null;
-      if (s.view === "basket") { state.basket = {}; state.items.forEach(function (d) { state.basket[d.id] = d; }); }
+      if (s.view === "basket") { state.basket = Object.create(null); state.items.forEach(function (d) { state.basket[d.id] = d; }); }
     } else return;
     render();
   }
@@ -148,6 +152,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   // ---------- views ----------
   function dealCard(d, i) {
+    var linkLabel = d.source === "skroutz" && d.url && d.url.indexOf("https://www.skroutz.gr/search?") === 0 ? "Find on Skroutz" : "Open offer";
     var on = !!state.basket[d.id];
     var img = picture(d, "img"); img.appendChild(el("span", { class: "badge num", text: "−" + d.discountPct + "%" }));
     return el("article", { class: "card", style: "--i:" + Math.min(i, 12) }, [
@@ -157,21 +162,46 @@ button{font:inherit;color:inherit;cursor:pointer}
       el("div", { class: "sub num" }, [document.createTextNode("Save "), el("span", { class: "g", text: eur(+(d.oldPrice - d.price).toFixed(2)) }), document.createTextNode(" vs " + baseline(d))]),
       el("div", { class: "acts" }, [
         el("button", { class: "btn " + (on ? "on" : "pri"), "aria-pressed": String(on), text: on ? "✓ In basket" : "Add to basket", onclick: function () { toggle(d); } }),
-        el("button", { class: "btn ghost", title: "Open offer", "aria-label": "Open offer", text: "↗", onclick: function () { openLink(d.url); } }),
+        el("button", { class: "btn ghost", title: linkLabel, "aria-label": linkLabel, text: "↗", onclick: function () { openLink(d.url); } }),
       ]),
     ]);
   }
-  function sorted(list) {
-    var a = list.slice(); var s = state.sort;
-    a.sort(function (x, y) { return s === "price_asc" ? x.price - y.price : s === "price_desc" ? y.price - x.price : y.discountPct - x.discountPct; });
-    return a;
+  function filterSelect(key, label, options) {
+    var select = el("select", { id: key, onchange: function (event) {
+      state[key] = event.target.value;
+      render();
+      document.getElementById(key).focus();
+    } }, options.map(function (option) {
+      return el("option", { value: option[0], text: option[1], selected: state[key] === option[0] });
+    }));
+    return el("label", {}, [label, select]);
+  }
+  function dealOptions(key, first, labels) {
+    var values = Array.from(new Set(state.deals.map(function (d) { return d[key]; }).filter(Boolean)));
+    return [["", first]].concat(values.map(function (value) {
+      return [value, labels[value] || value.replace(/-/g, " ")];
+    }).sort(function (a, b) { return a[1].localeCompare(b[1]); }));
   }
   function dealsView() {
-    var root = el("div"); var chips = [["discount", "Biggest discount"], ["price_asc", "Price ↑"], ["price_desc", "Price ↓"]];
-    root.appendChild(el("div", { class: "bar" }, [el("h2", {}, ["Deals ", el("small", { class: "num", text: state.deals.length + " found" })])].concat(chips.map(function (c) {
-      return el("button", { class: "chip", "aria-pressed": String(state.sort === c[0]), text: c[1], onclick: function () { state.sort = c[0]; render(); } });
-    }))));
-    root.appendChild(state.deals.length ? el("div", { class: "grid" }, sorted(state.deals).map(dealCard)) : el("div", { class: "empty", text: "No deals matched. Try a broader search." }));
+    var root = el("div");
+    var deals = state.deals.filter(function (d) {
+      return (!state.source || d.source === state.source) && (!state.category || d.category === state.category);
+    });
+    if (state.sort) deals.sort(function (a, b) {
+      if (state.sort === "price_asc") return a.price - b.price;
+      if (state.sort === "price_desc") return b.price - a.price;
+      if (state.sort === "savings") return (b.oldPrice - b.price) - (a.oldPrice - a.price);
+      return b.discountPct - a.discountPct;
+    });
+    root.appendChild(el("div", { class: "bar" }, [el("h2", {}, ["Deals ", el("small", {
+      class: "num", role: "status", text: deals.length + " shown" + (state.total > deals.length ? " of " + state.total + " matches" : ""),
+    })])]));
+    if (state.deals.length) root.appendChild(el("div", { class: "controls" }, [
+      filterSelect("source", "Source", dealOptions("source", "All sources", sourceNames)),
+      filterSelect("category", "Category", dealOptions("category", "All categories", categoryNames)),
+      filterSelect("sort", "Sort by", [["", "Result order"], ["discount", "Biggest discount"], ["price_asc", "Lowest price"], ["price_desc", "Highest price"], ["savings", "Most saved"]]),
+    ]));
+    root.appendChild(deals.length ? el("div", { class: "grid" }, deals.map(dealCard)) : el("div", { class: "empty", text: "No deals match. Try a broader search." }));
     var items = basketList();
     if (items.length) {
       var total = items.reduce(function (n, d) { return n + d.price; }, 0);
@@ -196,7 +226,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var back = state.deals.length ? el("button", { class: "chip", text: "← Deals", onclick: function () { state.view = "deals"; render(); } }) : null;
     root.appendChild(el("div", { class: "bar" }, [el("h2", {}, ["Your basket ", el("small", { class: "num", text: items.length + (items.length === 1 ? " item" : " items") })]), back]));
     if (!items.length) { root.appendChild(el("div", { class: "empty", text: "Your basket is empty. Add deals from the list." })); return root; }
-    var groups = {}; items.forEach(function (d) { (groups[d.source] = groups[d.source] || []).push(d); });
+    var groups = Object.create(null); items.forEach(function (d) { (groups[d.source] = groups[d.source] || []).push(d); });
     Object.keys(groups).forEach(function (src) {
       var list = groups[src], sum = list.reduce(function (n, d) { return n + d.price; }, 0), isSk = src === "skroutz";
       var g = el("section", { class: "group" }, [el("div", { class: "gh" }, [el("span", { class: "src " + src, text: srcName(list[0]) }), el("small", { text: isSk ? "can fill your Skroutz cart" : "no cart here: open each offer" }), el("span", { class: "num", text: eur(sum) })])]);

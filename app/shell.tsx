@@ -37,9 +37,9 @@ export function Shell({ initial }: { initial: Snapshot }) {
       <main className="wrap" id="top">
         <section className="hero">
           <div>
-            <span className="eyebrow">Agent-first · Skroutz · Greece</span>
+            <span className="eyebrow">Agent-first · Deals for Greece</span>
             <h1>Black Friday, <em>built for agents.</em></h1>
-            <p className="lede">Live deals from {snap.sources.map(x => x.name).join(", ")} behind one MCP. Your agent finds the best price, verifies it at the source, fills the cart. You press pay.</p>
+            <p className="lede">Compare deals from {snap.sources.map(x => x.name).join(", ")} in one MCP. Your agent can find offers, check current prices and fill a Skroutz cart. You handle checkout.</p>
             <div className="stats">
               <div className="stat"><b className="num">{stats.n}</b><span>{live ? "live deals" : "deals"}</span></div>
               <div className="stat"><b className="num">{stats.c}</b><span>categories</span></div>

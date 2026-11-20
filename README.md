@@ -1,10 +1,10 @@
 # Black Friday MCP
 
-An agent-first Black Friday deal feed for [Skroutz](https://www.skroutz.gr) (Greece), served as a **remote MCP server** with `llms.txt`, copy-ready prompts and a fast web UI.
+An agent-first Black Friday deal feed for shoppers in Greece, served as a **remote MCP server** with `llms.txt`, copy-ready prompts and a fast web UI.
 
 Agents discover and filter deals here, verify prices and build the cart with Skroutz's own **Skroutz Shopping** MCP connector, and the human does the paying. Nothing in this project can make a purchase.
 
-> Independent project, not affiliated with or endorsed by Skroutz. Deal data comes from Skroutz and changes without notice: always confirm the live price on Skroutz before paying.
+> Independent project, not affiliated with or endorsed by Skroutz. Deal prices can change. Confirm the current price and delivery costs at the source before paying.
 
 ## Sources
 
@@ -14,8 +14,9 @@ Each source is one small file. Today:
 | --- | --- | --- |
 | **Skroutz** | official *Skroutz Shopping* MCP connector (OAuth, one-time local sign-in) | agents can fill a Skroutz cart |
 | **BestPrice** | official open MCP (`mcp.bestprice.gr`), read-only | compares Greek shops (Kotsovolos, Public, ...); shown as each deal's `shop`; "was" price is the 180-day median |
+| **eBay** | official [Browse API](https://developer.ebay.com/develop/api/buy/browse_api), read-only | optional international source via eBay Germany, for discounted new items in EUR deliverable to Greece |
 
-Adding Amazon or any other marketplace is a new provider file plus one line in a registry. See **[docs/ADDING_A_SOURCE.md](docs/ADDING_A_SOURCE.md)**, which also records which Greek and global marketplaces have MCPs today.
+Adding another marketplace is a new provider file plus one line in a registry. See **[docs/ADDING_A_SOURCE.md](docs/ADDING_A_SOURCE.md)**, which also records which Greek and global marketplaces have MCPs today.
 
 ## How it works
 
@@ -55,7 +56,7 @@ claude mcp add --transport http skroutz https://api.skroutz.gr/api/agents/mcp/sh
 
 ## MCP App UI
 
-`search_deals`, `get_deal`, `compare_deals`, `build_shopping_plan` and `show_basket` also return structured data and point at a widget (`ui://blackfriday/deals.html`, source in `lib/ui/widget.ts`). Hosts that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps) render product cards with images, an add-to-basket button, a basket and a cart view. Other clients just get JSON.
+`search_deals`, `get_deal`, `compare_deals`, `build_shopping_plan` and `show_basket` also return structured data and point at a widget (`ui://blackfriday/deals.html`, source in `lib/ui/widget.ts`). Hosts that support [MCP Apps](https://modelcontextprotocol.io/extensions/apps) render product cards with images, source and category filters for the displayed results, sorting, a basket and a cart view. Other clients just get JSON.
 
 The widget never buys and cannot touch the user's real cart (that needs the user's own sign-in). Its **Add to Skroutz cart** button asks the assistant to run the Skroutz Shopping connector's `add_to_cart`; the assistant then calls `show_basket` with the returned `cart_url`, and the widget shows **Go to Skroutz cart & pay**. Links and images are host-allowlisted (Skroutz, BestPrice) and everything is rendered with `textContent`.
 
@@ -94,14 +95,15 @@ Nothing is written to disk and nothing should ever be committed.
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob token (last good snapshot + encrypted tokens) |
 | `ADMIN_SECRET` | Password for the `/admin` refresh form and the key that encrypts stored tokens |
 | `SKROUTZ_CLIENT_ID`, `SKROUTZ_CLIENT_SECRET`, `SKROUTZ_REFRESH_TOKEN` | From `scripts/skroutz-auth.mjs` (Skroutz source) |
-| `SOURCES` | Optional comma list to restrict which sources run, e.g. `skroutz,bestprice` |
+| `EBAY_CLIENT_ID`, `EBAY_CLIENT_SECRET` | Production App ID and Cert ID with [approved eBay Buy API access](https://developer.ebay.com/api-docs/buy/buy-requirements.html#production); eBay is enabled when both are set |
+| `SOURCES` | Optional comma list to restrict which sources run, e.g. `skroutz,bestprice,ebay` |
 | `BESTPRICE_REFRESH_SECONDS` | Optional, default `21600` (6h). Lower it only if BestPrice has granted you data access |
 
 `.env*` is git-ignored; only `.env.example` (empty values) is tracked.
 
 ### Security notes
 
-- **Use a dedicated Skroutz account.** The Skroutz connector's scope also covers carts, orders and addresses. This app only ever calls `search_deals` (see `lib/skroutz/deals.ts`), but the token itself is powerful, so don't use your personal account.
+- **Use a dedicated Skroutz account.** The Skroutz connector's scope also covers carts, orders and addresses. This app only ever calls `search_deals` (see `lib/providers/skroutz/index.ts`), but the token itself is powerful, so don't use your personal account.
 - **BestPrice rate limits.** Its free tier caps unidentified clients per day (HTTP 429). The provider identifies itself, spends about 55 calls per refresh and refreshes every 6h. For hourly data contact feedback@bestprice.gr.
 - Skroutz rotates refresh tokens; the newest one is stored AES-256-GCM encrypted (key derived from `ADMIN_SECRET`) under an unguessable Blob path. Rotating `ADMIN_SECRET` means re-running the sign-in script.
 - `POST /api/refresh` (Bearer `ADMIN_SECRET`, or the form on `/admin`) forces a rebuild on the next request. The hourly refresh is request-driven; to guarantee it without traffic, call that endpoint from any scheduler.

@@ -18,12 +18,12 @@ export type Snapshot = { updatedAt: string; deals: Deal[]; campaigns: Campaign[]
 /** What one provider produced on its own. */
 export type ProviderSnapshot = { updatedAt: string; deals: Deal[]; campaigns: Campaign[]; status: SourceStatus };
 
-const LABELS: Record<string, string> = {
+export const CATEGORY_LABELS: Record<string, string> = {
   smartphones: "Smartphones", audio: "Headphones & audio", tv: "TVs", laptops: "Laptops", smartwatches: "Smartwatches",
   "robot-vacuums": "Robot vacuums", tablets: "Tablets", appliances: "Home appliances", gaming: "Gaming", monitors: "Monitors",
   cameras: "Cameras", kitchen: "Kitchen", beauty: "Beauty", toys: "Toys", storage: "Storage", other: "Other",
 };
-export const categoryLabel = (c: string) => LABELS[c] ?? c.replace(/-/g, " ").replace(/^./, m => m.toUpperCase());
+export const categoryLabel = (c: string) => CATEGORY_LABELS[c] ?? c.replace(/-/g, " ").replace(/^./, m => m.toUpperCase());
 export const eur = (n: number) => new Intl.NumberFormat("en-IE", { style: "currency", currency: "EUR", minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2 }).format(n);
 export const oldPriceOf = (price: number, pct: number) => Math.round((price / (1 - pct / 100)) * 100) / 100;
 export const slug = (s: string) => s.toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");

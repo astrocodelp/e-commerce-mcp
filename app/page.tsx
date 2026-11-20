@@ -19,7 +19,7 @@ export default async function Home() {
             <li>Verify with each source's own tools</li><li>Skroutz carts via <code>add_to_cart</code></li>
             <li><a href="/agents">Agent quickstart →</a></li><li><a href="/prompts">Prompt library →</a></li></ul></div>
         </div>
-        <p className="fine">Independent project. Deal data comes from Skroutz and BestPrice and can change at any time; always confirm the live price at the shop before paying. Not affiliated with Skroutz or BestPrice.</p>
+        <p className="fine">Independent project. Deal prices can change at any time. Confirm the current price and delivery costs at the shop before paying.</p>
       </div></footer>
     </>
   );
